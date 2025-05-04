@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Cartão BINGO PICS</title>
+
+    <!-- Estilos CSS -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(135deg, #e6f0f7, #ffffff);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            overflow-x: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #007bff;
+            text-align: center;
+            font-size: 2.5em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        #main-game-area {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 1200px;
+            gap: 30px;
+        }
+
+
+        .player-card-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            flex-shrink: 0;
+            flex-grow: 0;
+        }
+
+        .player-card-container button {
+             display: block;
+             width: auto;
+             min-width: 200px;
+             padding: 12px 25px;
+             font-size: 1.1em;
+             font-weight: bold;
+             cursor: pointer;
+             border: none;
+             border-radius: 8px;
+             color: white;
+             background: linear-gradient(135deg, #007bff, #0056b3);
+             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+             transition: transform 0.2s ease, background-color 0.3s ease;
+             margin-bottom: 0;
+             text-align: center;
+        }
+
+         .player-card-container button:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #0056b3, #004099);
+         }
+
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        .card-cell {
+            background: linear-gradient(145deg, #cfe7f9, #a8d2f0);
+            border: 2px solid #007bff;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.75em;
+            font-weight: bold;
+            padding: 6px;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.3s, transform 0.2s, border-color 0.3s, color 0.3s, box-shadow 0.3s;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            overflow-wrap: break-word;
+            word-break: break-word;
+            color: #333;
+            position: relative;
+            line-height: 1.2;
+        }
+
+         .card-cell:not(.marked):hover {
+            transform: scale(1.05);
+             background-color: #87ceeb;
+             border-color: #0056b3;
+        }
+
+        .card-cell.marked {
+             color: white;
+             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+             box-shadow: 0 0 10px rgba(0,0,0,0.3);
+             background-image: none;
+             cursor: default;
+             transform: none !important;
+         }
+
+
+        /* --- Marked PICS Sidebar Styles with Accordion --- */
+        #marked-pics-sidebar { /* Changed ID back */
+            width: 350px; /* Restored previous width */
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            /* Following user's explicit instruction to disable overflow/max-height */
+            overflow-y: hidden !important;
+            max-height: none !important;
+            flex-shrink: 0;
+            flex-grow: 0;
+            position: sticky; /* Keep sticky positioning */
+            top: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+         #marked-pics-sidebar h2 { /* Changed ID back */
+            color: #0056b3;
+            font-size: 1.5em;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+         }
+
+        /* NOVO estilo para accordion */
+        #marked-pics-list { /* Changed ID back */
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+             /* Remove grid styles */
+             /* Add scroll if the list gets too long and sidebar max-height was active */
+             /* With max-height: none on sidebar, this overflow might not be needed */
+             overflow-y: visible; /* Or auto if sidebar max-height was kept */
+             padding-right: 0; /* Remove padding if no internal scrollbar */
+        }
+
+        .accordion-item {
+            background-color: #fff;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            border-left: 5px solid #007bff; /* Color set by JS */
+            transition: all 0.3s ease;
+            overflow: hidden; /* Hide content when collapsed */
+        }
+
+         .accordion-item:last-child {
+             margin-bottom: 0; /* No gap after the last item */
+         }
+
+
+        .accordion-header {
+            padding: 10px 15px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #333;
+            transition: background-color 0.2s;
+            word-break: break-word; /* Allow breaking long names */
+        }
+
+        .accordion-header:hover {
+            background-color: #f0f0f0;
+        }
+
+        .accordion-content {
+            display: none; /* Hidden by default */
+            padding: 0 15px 10px 15px;
+            font-size: 0.9em;
+            color: #555;
+            line-height: 1.4;
+            word-break: break-word; /* Allow breaking long descriptions */
+        }
+
+        .accordion-item.active .accordion-content {
+            display: block; /* Shown when active */
+        }
+
+
+        /* --- Expanded View (Modal) Styles - KEPT THE SAME --- */
+        #expanded-view-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        #expanded-card-container {
+            width: 90%;
+            max-width: 400px;
+            height: 65vh;
+            max-height: 550px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            perspective: 1000px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+         #expanded-card-container .flip-container {
+             flex-grow: 1;
+             width: 100%;
+             margin-bottom: 15px;
+        }
+
+
+        #close-expanded-view {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255, 255, 255, 0.8);
+            color: #333;
+            font-size: 1.5em;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1010;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+             border: none;
+             padding: 0;
+             transition: background-color 0.2s;
+        }
+
+         #close-expanded-view:hover {
+            background-color: #eee;
+         }
+
+         #mark-button {
+            display: block;
+            width: 80%;
+            padding: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            background-color: #28a745;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            text-align: center;
+            z-index: 1005;
+         }
+
+         #mark-button:hover:not(:disabled) {
+             background-color: #218838;
+             transform: translateY(-1px);
+         }
+
+          #mark-button:disabled {
+            background-color: #cccccc !important;
+            cursor: not-allowed;
+            box-shadow: none;
+            color: #666;
+            transform: none !important;
+         }
+
+        .flip-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .flipper {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+
+        .flip-container.flipped .flipper {
+            transform: rotateY(180deg);
+        }
+
+        .front, .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .front {
+            background-color: #e0f7fa;
+            font-size: 1.8em;
+            font-weight: bold;
+            text-align: center;
+            border-width: 3px;
+            border-style: solid;
+            line-height: 1.3;
+        }
+
+        .back {
+            background-color: #fff;
+            color: #333;
+            font-size: 1.1em;
+            text-align: left;
+            border: 1px solid #ccc;
+            transform: rotateY(180deg);
+             line-height: 1.5;
+        }
+
+
+        /* --- Responsive Styles --- */
+        @media (max-width: 1000px) {
+             #main-game-area {
+                flex-direction: column;
+                align-items: center;
+                gap: 30px;
+             }
+
+             .player-card-container {
+                 width: 100%;
+                 max-width: 450px;
+             }
+
+             #marked-pics-sidebar { /* Changed ID back */
+                 width: 100%;
+                 max-width: 450px; /* Limit sidebar max width */
+                 position: static;
+                 max-height: none;
+                 overflow-y: visible; /* Or auto if preferred */
+                 flex-direction: column;
+             }
+
+             #marked-pics-list { /* Changed ID back */
+                 gap: 8px; /* Keep gap */
+             }
+
+             .accordion-item {
+                 border-left-width: 5px; /* Keep border width */
+             }
+        }
+
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2em;
+                margin-bottom: 15px;
+            }
+
+             #main-game-area {
+                 gap: 20px;
+             }
+
+             .player-card-container button {
+                 width: 100%;
+                 min-width: auto;
+                 font-size: 1em;
+                 padding: 10px 20px;
+             }
+
+            .card-grid {
+                max-width: 320px;
+                gap: 3px;
+            }
+
+            .card-cell {
+                font-size: 0.6em;
+                padding: 3px;
+            }
+
+             #marked-pics-sidebar { /* Changed ID back */
+                 padding: 15px;
+                 max-width: 320px;
+             }
+
+              #marked-pics-sidebar h2 { /* Changed ID back */
+                 font-size: 1.3em;
+                 margin-bottom: 10px;
+                 padding-bottom: 8px;
+              }
+
+            .accordion-header {
+                padding: 8px 10px; /* Adjusted padding */
+                font-size: 0.9em; /* Adjusted font size */
+            }
+
+            .accordion-content {
+                padding: 0 10px 8px 10px; /* Adjusted padding */
+                font-size: 0.85em; /* Adjusted font size */
+            }
+
+
+             #expanded-card-container {
+                width: 95%;
+                height: 75vh;
+                padding: 15px;
+             }
+
+             .front {
+                font-size: 1.5em;
+                padding: 15px;
+             }
+
+             .back {
+                font-size: 1em;
+                padding: 15px;
+             }
+
+             #mark-button {
+                 width: 90%;
+                 font-size: 1em;
+                 padding: 8px;
+             }
+        }
+    </style>
+</head>
+<body>
+    <h1>BINGO das PICS do SUS</h1>
+
+    <div id="main-game-area">
+        <!-- Left side: Bingo Card area -->
+        <div class="player-card-container">
+            <button id="restart-button">Gerar Novo Cartão</button>
+            <div id="bingo-card" class="card-grid">
+                <!-- Card cells will be generated here -->
+            </div>
+        </div>
+
+        <!-- Right side: Marked PICS Sidebar with Accordion -->
+        <div id="marked-pics-sidebar"> <!-- Changed ID back -->
+            <h2>PICS Marcadas</h2> <!-- Changed title back -->
+            <div id="marked-pics-list"> <!-- Changed ID back -->
+                <!-- Marked PICS accordion items will be listed here -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Expanded View Overlay (Modal) - KEPT THE SAME -->
+    <div id="expanded-view-overlay" style="display: none;">
+        <div id="expanded-card-container">
+             <button id="close-expanded-view">×</button>
+            <div class="flip-container" id="flip-container">
+                <div class="flipper" id="flipper">
+                    <div class="front" id="expanded-front">
+                        <!-- PICS Name -->
+                    </div>
+                    <div class="back" id="expanded-back">
+                        <!-- PICS Description -->
+                    </div>
+                </div>
+            </div>
+             <button id="mark-button"></button>
+        </div>
+    </div>
+
+    <script>
+        // Lista das 29 PICS do SUS com descrições (completa) - KEPT THE SAME
+        const allPicsData = [
+            { name: "Acupuntura", description: "Técnica milenar chinesa que insere agulhas em pontos específicos do corpo para estimular o fluxo de energia e tratar diversas condições físicas e mentais." },
+            { name: "Homeopatia", description: "Sistema médico que utiliza substâncias naturais em doses mínimas e altamente diluídas para estimular a cura natural do corpo, baseado no princípio 'semelhante cura semelhante'." },
+            { name: "Fitoterapia", description: "Uso de plantas medicinais em suas diferentes formas (chás, extratos, cápsulas) para prevenção, tratamento e alívio de doenças, aproveitando seus princípios ativos." },
+            { name: "Termalismo Social/Crenoterapia", description: "Utilização de águas minerais com propriedades terapêuticas, associada a banhos, duchas e ingestão, em balneários e estâncias termais para tratamento de saúde e bem-estar." },
+            { name: "Antroposofia Aplicada à Saúde", description: "Abordagem integrativa que considera o ser humano em seus aspectos físico, vital, anímico e espiritual. Utiliza medicamentos antroposóficos, terapias artísticas, massagens, entre outros." },
+            { name: "Dança Circular", description: "Prática coletiva que utiliza danças em roda com movimentos e gestos significativos, promovendo socialização, bem-estar físico e mental, e conexão com tradições culturais." },
+            { name: "Meditação", description: "Técnica de concentração e relaxamento que treina a mente para focar a atenção, promovendo redução do estresse, aumento da autoconsciência e equilíbrio emocional." },
+            { name: "Musicoterapia", description: "Uso da música e seus elementos (som, ritmo, melodia, harmonia) por um musicoterapeuta qualificado para facilitar a comunicação, o relacionamento, o aprendizado, a mobilização, a expressão e outros objetivos terapêuticos." },
+            { name: "Naturopatia", description: "Sistema que enfatiza a cura natural do corpo, utilizando terapias como fitoterapia, nutrição, hidroterapia, argiloterapia, geoterapia, entre outras, visando a saúde integral." },
+            { name: "Osteopatia", description: "Método diagnóstico e terapêutico manual que busca restabelecer a função das estruturas corporais (músculos, articulações, ligamentos), visando aliviar dores e melhorar a mobilidade." },
+            { name: "Quiropraxia", description: "Profissão da área da saúde que se dedica ao diagnóstico, tratamento e prevenção de distúrbios do sistema neuromusculoesquelético, principalmente da coluna vertebral, utilizando ajustes manuais." },
+            { name: "Reflexoterapia", description: "Técnica que estimula pontos reflexos em pés, mãos ou orelhas, correspondentes a órgãos e sistemas do corpo, visando promover relaxamento, alívio da dor e equilíbrio energético." },
+            { name: "Reiki", description: "Prática de imposição de mãos que utiliza a 'energia vital universal' para equilibrar os centros de energia do corpo, promovendo relaxamento, bem-estar e auxílio no processo de cura." },
+            { name: "Shantala", description: "Técnica milenar indiana de massagem em bebês, realizada pelos pais ou cuidadores, que promove vínculo afetivo, relaxamento, alívio de cólicas e estímulo ao desenvolvimento." },
+            { name: "Terapia Comunitária Integrativa", description: "Espaço de escuta e acolhimento em grupo que busca fortalecer os laços comunitários, compartilhar experiências e saberes para superar sofrimentos, usando recursos da própria comunidade e PICS." },
+            { name: "Yoga", description: "Prática ancestral indiana que integra posturas físicas (asanas), exercícios respiratórios (pranayama), meditação e princípios éticos, promovendo equilíbrio entre corpo e mente, flexibilidade e força." },
+            { name: "Arteterapia", description: "Uso de materiais artísticos e do processo criativo como forma de expressão terapêutica, auxiliando na resolução de conflitos, desenvolvimento pessoal e reabilitação." },
+            { name: "Ayurveda", description: "Sistema tradicional indiano de saúde que busca equilibrar corpo, mente e espírito por meio de dieta, fitoterapia, massagens, yoga, meditação e outras práticas personalizadas de acordo com o 'dosha' individual." },
+            { name: "Biodança", description: "Sistema que utiliza música, movimento e vivências em grupo para estimular a integração humana, o desenvolvimento das potencialidades e a expressão dos afetos." },
+            { name: "Bioenergética", description: "Abordagem terapêutica corporal que combina análise do caráter e técnicas corporais (exercícios bioenergéticos, massagens) para liberar tensões musculares e bloqueios emocionais, resgatando a vitalidade." },
+            { name: "Constelação Familiar", description: "Método terapêutico que explora as dinâmicas ocultas nos sistemas familiares e outros grupos, buscando identificar emaranhamentos e encontrar soluções para conflitos e padrões limitantes." },
+            { name: "Cromoterapia", description: "Uso das cores e suas vibrações energéticas para restaurar o equilíbrio físico, energético e emocional do corpo." },
+            { name: "Geoterapia", description: "Uso de elementos da terra como argila, lama, pedras e cristais para fins terapêuticos, aplicada em cataplasmas, compressas, banhos e massagens, promovendo desintoxicação e revitalização." },
+            { name: "Hipnoterapia", description: "Uso da hipnose como ferramenta terapêutica para acessar o subconsciente, ressignificar traumas, tratar fobias, ansiedade e promover mudanças comportamentais." },
+            { name: "Imposição de Mãos", description: "Prática terapêutica onde o toque ou a proximidade das mãos busca transmitir energia vital para o receptor, promovendo relaxamento, alívio da dor e auxílio na recuperação." },
+            { name: "Ozonioterapia", description: "Uso terapêutico do gás ozônio, uma forma de oxigênio, aplicado por diversas vias para tratar infecções, inflamações, melhorar a circulação e auxiliar na cicatrização." },
+            { name: "Terapia de Florais", description: "Uso de essências energéticas extraídas de flores para atuar nos estados emocionais e mentais, buscando reequilibrar as emoções e promover bem-estar psíquico." },
+             { name: "Aromaterapia", description: "Uso terapêutico de óleos essenciais aromáticos extraídos de plantas para promover saúde física e mental, aplicados por inalação, massagem ou em banhos." },
+            { name: "Apiterapia", description: "Uso de produtos das abelhas, como mel, pólen, própolis, geleia real e veneno (apitoxina), para fins terapêuticos." }
+        ];
+
+        // Array of distinct colors (at least 29) - KEPT THE SAME
+        const picsColors = [
+            '#FF6347', '#4682B4', '#8A2BE2', '#3CB371', '#FFD700',
+            '#FF69B4', '#00CED1', '#BA55D3', '#7CFC00', '#FF8C00',
+            '#00FA9A', '#4169E1', '#DC143C', '#00BFFF', '#800080',
+            '#32CD32', '#FF4500', '#1E90FF', '#DA70D6', '#9ACD32',
+            '#FFA07A', '#6495ED', '#DDA0DD', '#556B2F', '#CD853F',
+            '#20B2AA', '#87CEEB', '#FFB6C1', '#9370DB'
+        ];
+
+        let playerCard = []; // Stores objects { name, description, marked, element, row, col }
+        let picsColorMap = {};
+
+        let completedPatterns = [];
+
+        // DOM Elements - UPDATED sidebar element reference
+        const cardGridElement = document.getElementById('bingo-card');
+        const restartButton = document.getElementById('restart-button');
+        const expandedViewOverlay = document.getElementById('expanded-view-overlay');
+        const expandedCardContainer = document.getElementById('expanded-card-container');
+        const closeExpandedViewButton = document.getElementById('close-expanded-view');
+        const flipper = document.getElementById('flipper');
+        const expandedFront = document.getElementById('expanded-front');
+        const expandedBack = document.getElementById('expanded-back');
+        const flipContainer = document.getElementById('flip-container');
+        const markButton = document.getElementById('mark-button');
+
+        // New DOM Element reference for the marked list (accordion container)
+        const markedPicsListElement = document.getElementById('marked-pics-list');
+
+
+        let isExpandedViewOpen = false;
+        let currentExpandedCardItem = null;
+
+        // --- Card Generation --- - MODIFIED
+        function generateCard() {
+            const cardSize = 25;
+            playerCard = [];
+            cardGridElement.innerHTML = ''; // Clear grid display
+            markedPicsListElement.innerHTML = ''; // <-- Clear marked list (accordion) on new card
+            completedPatterns = [];
+
+            // Populate color map for ALL 29 PICS, shuffled
+            picsColorMap = {};
+            const shuffledAllPicsData = [...allPicsData].sort(() => 0.5 - Math.random());
+            shuffledAllPicsData.forEach((item, index) => {
+                picsColorMap[item.name] = picsColors[index % picsColors.length]; // Cycle through colors
+            });
+
+            // Shuffle allPicsData and take the first `cardSize` (25) unique items for the card
+            const cardPicsData = [...allPicsData].sort(() => 0.5 - Math.random()).slice(0, cardSize);
+
+            if (cardPicsData.length < cardSize) {
+                 console.error("Erro: Não há PICS suficientes para gerar um cartão 5x5.");
+                 alert("Erro: Não há PICS suficientes para gerar um cartão completo (25 itens).");
+                 return;
+            }
+
+            cardPicsData.forEach((picsData, index) => {
+                // Create cell for the main bingo grid
+                const cell = document.createElement('div');
+                cell.classList.add('card-cell');
+                cell.textContent = picsData.name;
+                cell.dataset.picsName = picsData.name;
+                cell.dataset.index = index;
+                cell.addEventListener('click', handleCellClick);
+                cardGridElement.appendChild(cell);
+
+                playerCard.push({
+                    name: picsData.name,
+                    description: picsData.description,
+                    marked: false,
+                    element: cell, // Reference to grid cell
+                    row: Math.floor(index / 5),
+                    col: index % 5
+                });
+            });
+             console.log(`Novo cartão 5x5 gerado com ${playerCard.length} PICS.`);
+        }
+
+        // --- Card Cell Click (Open Expanded View) --- - KEPT SAME BEHAVIOR
+        function handleCellClick(event) {
+             if (isExpandedViewOpen) return;
+
+            const clickedCell = event.target;
+             // Prevent opening if already marked - info is in the sidebar now
+             if (clickedCell.classList.contains('marked')) {
+                 console.log("Clicou em uma PICS já marcada na cartela. Veja a lista ao lado para os detalhes.");
+                 return;
+             }
+
+            const picsName = clickedCell.dataset.picsName;
+            const cardItem = playerCard.find(item => item.name === picsName);
+
+            if (!cardItem) {
+                console.error("Erro: Item do cartão não encontrado para a PICS:", picsName);
+                return;
+            }
+
+            currentExpandedCardItem = cardItem;
+
+            showExpandedView(cardItem);
+        }
+
+        // --- Expanded View Logic --- - KEPT SAME BEHAVIOR
+        function showExpandedView(cardItem) {
+            isExpandedViewOpen = true;
+
+            expandedFront.textContent = cardItem.name;
+            expandedBack.textContent = cardItem.description;
+
+            const color = picsColorMap[cardItem.name] || '#007bff';
+             expandedCardContainer.style.backgroundColor = color;
+             expandedFront.style.borderColor = color;
+             expandedFront.style.color = color;
+             expandedBack.style.borderColor = '#ccc';
+
+            // Update the mark button state
+            if (cardItem.marked) {
+                 markButton.textContent = 'Marcada';
+                 markButton.disabled = true;
+                 markButton.style.backgroundColor = '#6c757d'; // Grey
+            } else {
+                 markButton.textContent = 'Marcar PICS';
+                 markButton.disabled = false;
+                 markButton.style.backgroundColor = '#28a745'; // Green
+            }
+
+            flipContainer.classList.remove('flipped');
+
+            expandedViewOverlay.style.display = 'flex';
+
+             console.log(`Visualizando: ${cardItem.name}. Marcada: ${cardItem.marked}.`);
+        }
+
+        function hideExpandedView() {
+            isExpandedViewOpen = false;
+            currentExpandedCardItem = null;
+
+            expandedViewOverlay.style.display = 'none';
+             console.log("Visualização expandida fechada.");
+        }
+
+        function toggleFlip(event) {
+            if (event.target === closeExpandedViewButton || event.target === markButton) {
+                return;
+            }
+             console.log('Expanded Card Container clicked! Toggling flip.');
+            flipContainer.classList.toggle('flipped');
+        }
+
+        // --- Mark Button Logic --- - MODIFIED
+        function handleMarkButtonClick() {
+            if (!currentExpandedCardItem) {
+                 console.error("Botão marcar clicado sem item expandido selecionado.");
+                return;
+            }
+
+            const cardItem = currentExpandedCardItem;
+
+            if (cardItem.marked) {
+                 console.log(`${cardItem.name} já está marcada.`);
+                 return;
+            }
+
+            const patternsBeforeMark = checkWinPatterns();
+
+            // --- Mark the item ---
+            cardItem.marked = true;
+            console.log(`"${cardItem.name}" marcada.`);
+
+            // Apply visual marked styles to the cell element on the grid
+            const cellElement = cardItem.element;
+            const color = picsColorMap[cardItem.name] || '#007bff';
+            cellElement.style.backgroundColor = color;
+            cellElement.style.borderColor = color;
+            cellElement.style.color = '#ffffff';
+            cellElement.style.textShadow = '1px 1px 2px rgba(0,0,0,0.5)';
+            cellElement.style.boxShadow = `0 0 10px ${color}`;
+            cellElement.classList.add('marked'); // Add marked class
+            cellElement.style.backgroundImage = 'none';
+
+            // Add the marked item to the sidebar accordion <-- NEW/UPDATED
+             addMarkedPicToSidebar(cardItem);
+
+
+            // Update the mark button state in the expanded view
+             markButton.textContent = 'Marcada';
+             markButton.disabled = true;
+             markButton.style.backgroundColor = '#6c757d';
+
+            // --- Check patterns AFTER marking ---
+            const patternsAfterMark = checkWinPatterns();
+
+            // --- Identify NEWLY completed patterns and alert ---
+            const newlyCompletedPatterns = patternsAfterMark.filter(p => !completedPatterns.includes(p));
+
+            newlyCompletedPatterns.forEach(pattern => {
+                if (pattern.startsWith('row-')) {
+                    const row = parseInt(pattern.split('-')[1]) + 1;
+                    alert(`🎉 BINGO! Você completou a Linha ${row}!`);
+                } else if (pattern.startsWith('col-')) {
+                    const col = parseInt(pattern.split('-')[1]) + 1;
+                    alert(`🎉 BINGO! Você completou a Coluna ${col}!`);
+                } else if (pattern === 'diag-1') {
+                    alert("🎉 BINGO! Você completou a Diagonal Principal!");
+                } else if (pattern === 'diag-2') {
+                    alert("🎉 BINGO! Você completou a Diagonal Secundária!");
+                } else if (pattern === 'blackout') {
+                    alert("🥳 CARTELA COMPLETA! Parabéns, você marcou todas as PICS!");
+                }
+            });
+
+            completedPatterns = patternsAfterMark;
+
+            // Optionally close the expanded view after marking
+            // hideExpandedView();
+        }
+
+        // --- Add Marked PIC to Sidebar Accordion --- <-- PROVIDED & INTEGRATED
+        function addMarkedPicToSidebar(cardItem) {
+            const accordionItem = document.createElement('div');
+            accordionItem.classList.add('accordion-item');
+
+            const color = picsColorMap[cardItem.name] || '#007bff';
+            accordionItem.style.borderLeftColor = color;
+
+            const header = document.createElement('div');
+            header.classList.add('accordion-header');
+            header.textContent = cardItem.name;
+            accordionItem.appendChild(header);
+
+            const content = document.createElement('div');
+            content.classList.add('accordion-content');
+            content.textContent = cardItem.description;
+            accordionItem.appendChild(content);
+
+            header.addEventListener('click', () => {
+              // Close all other accordion items
+              document.querySelectorAll('.accordion-item').forEach(item => {
+                if (item !== accordionItem) {
+                  item.classList.remove('active');
+                }
+              });
+              // Toggle the active state of the clicked item
+              accordionItem.classList.toggle('active');
+            });
+
+            markedPicsListElement.appendChild(accordionItem); // Use the correct list element
+            console.log(`"${cardItem.name}" adicionada à lista de marcadas (accordion).`);
+        }
+
+
+        // --- Check all possible win patterns --- - KEPT THE SAME
+        function checkWinPatterns() {
+            const currentCompleted = [];
+
+            const markedGrid = Array(5).fill(null).map(() => Array(5).fill(false));
+            playerCard.forEach(item => {
+                if (item.marked) {
+                    markedGrid[item.row][item.col] = true;
+                }
+            });
+
+            // Check Rows
+            for (let r = 0; r < 5; r++) {
+                let rowComplete = true;
+                for (let c = 0; c < 5; c++) {
+                    if (!markedGrid[r][c]) {
+                        rowComplete = false;
+                        break;
+                    }
+                }
+                if (rowComplete) {
+                    currentCompleted.push(`row-${r}`);
+                }
+            }
+
+            // Check Columns
+            for (let c = 0; c < 5; c++) {
+                let colComplete = true;
+                for (let r = 0; r < 5; r++) {
+                    if (!markedGrid[r][c]) {
+                        colComplete = false;
+                        break;
+                    }
+                }
+                if (colComplete) {
+                     currentCompleted.push(`col-${c}`);
+                }
+            }
+
+            // Check Diagonal 1
+            let diag1Complete = true;
+            for (let i = 0; i < 5; i++) {
+                if (!markedGrid[i][i]) {
+                    diag1Complete = false;
+                    break;
+                }
+            }
+            if (diag1Complete) {
+                 currentCompleted.push('diag-1');
+            }
+
+            // Check Diagonal 2
+            let diag2Complete = true;
+            for (let i = 0; i < 5; i++) {
+                if (!markedGrid[i][4 - i]) {
+                    diag2Complete = false;
+                    break;
+                }
+            }
+            if (diag2Complete) {
+                 currentCompleted.push('diag-2');
+            }
+
+            // Check Blackout
+            const allMarked = playerCard.length > 0 && playerCard.every(item => item.marked);
+            if (allMarked) {
+                currentCompleted.push('blackout');
+            }
+
+            return currentCompleted;
+        }
+
+        // --- Restart Game (Generate New Card) --- - MODIFIED
+        function restartGame() {
+             console.log("Reiniciando jogo e gerando novo cartão...");
+
+            cardGridElement.innerHTML = ''; // Clear grid display
+            markedPicsListElement.innerHTML = ''; // <-- Clear marked list (accordion)
+            playerCard = [];
+            completedPatterns = [];
+
+            hideExpandedView();
+
+            generateCard();
+        }
+
+        // --- Initialization --- - KEPT SAME
+        document.addEventListener('DOMContentLoaded', () => {
+            restartGame(); // Use restartGame for initial setup
+
+            restartButton.addEventListener('click', restartGame);
+            closeExpandedViewButton.addEventListener('click', hideExpandedView);
+            expandedCardContainer.addEventListener('click', toggleFlip);
+            markButton.addEventListener('click', handleMarkButtonClick);
+
+             expandedViewOverlay.addEventListener('click', (event) => {
+                 if (event.target === expandedViewOverlay) {
+                     hideExpandedView();
+                 }
+             });
+
+            // No need for sidebar item specific listeners now, accordion handles clicks internally
+        });
+    </script>
+</body>
+</html>
